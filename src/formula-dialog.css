@@ -1,0 +1,111 @@
+.fd-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 50;
+	background: rgba(15, 23, 42, 0.35);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.fd {
+	width: min(640px, calc(100vw - 32px));
+	max-height: calc(100vh - 48px);
+	overflow-y: auto;
+	background: #fff;
+	border-radius: 12px;
+	padding: 20px;
+	box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	font-size: 14px;
+}
+
+.fd h3 {
+	margin: 0 0 4px;
+}
+
+.fd label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-weight: 600;
+}
+
+.fd input {
+	padding: 6px 8px;
+	border: 1px solid #c7c9f5;
+	border-radius: 6px;
+	font: inherit;
+	font-weight: 400;
+	min-width: 0;
+}
+
+.fd-vars-head,
+.fd-var {
+	display: grid;
+	grid-template-columns: 56px 1fr 70px 90px 1.4fr;
+	gap: 6px;
+	align-items: center;
+}
+
+.fd-vars-head {
+	font-size: 12px;
+}
+
+.fd-solve {
+	display: flex;
+	gap: 4px;
+}
+
+.fd-solve input {
+	flex: 1;
+}
+
+.fd-add {
+	align-self: flex-start;
+}
+
+.fd-hint code {
+	background: #f3f4f6;
+	padding: 0 3px;
+	border-radius: 3px;
+}
+
+.fd-error {
+	color: #b91c1c;
+	background: #fef2f2;
+	border-radius: 6px;
+	padding: 6px 8px;
+}
+
+.fd-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.fd-primary {
+	background: #4f46e5;
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	padding: 6px 12px;
+	cursor: pointer;
+}
+
+.menu-row {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.menu-row > button:first-child {
+	flex: 1;
+}
+
+.menu-create {
+	border-top: 1px solid #e5e7eb;
+	margin-top: 4px;
+}
