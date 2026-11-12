@@ -2,6 +2,7 @@ import { Handle, Position, useReactFlow, type Node, type NodeProps } from '@xyfl
 import { useContext } from 'react'
 import { findFormula, useFormulas } from '../lib/registry'
 import { parseFormulaValues } from '../lib/evaluate'
+import { findConstant } from '../lib/constants'
 import { ResultContext } from '../ResultContext'
 import { DraftInput } from '../Draft'
 import type { FormulaData } from '../lib/graph'
@@ -46,7 +47,7 @@ export function FormulaNode({ id, data }: NodeProps<FormulaFlowNode>) {
 							className="nodrag"
 							disabled={isTarget || wired !== undefined}
 							value={shown}
-							placeholder={isTarget ? 'solved' : v.label}
+							placeholder={isTarget ? 'solved' : v.constantId ? findConstant(v.constantId)?.value ?? v.label : v.label}
 							onCommit={(s) => setValue(v.symbol, s)}
 							style={{ minWidth: 0, flex: 1 }}
 						/>

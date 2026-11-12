@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { Formula } from './lib/formulas'
-import { draftFrom, emptyDraft, validateDraft, type FormulaDraft, type VarDraft } from './lib/customFormula'
+import { draftFrom, emptyDraft, emptyVar, validateDraft, type FormulaDraft, type VarDraft } from './lib/customFormula'
+import { allConstants } from './lib/constants'
 import './formula-dialog.css'
 
 /** Create or edit a formula of your own. Saved formulas appear in the formula list. */
@@ -52,7 +53,22 @@ export function FormulaDialog({
 						<input value={v.symbol} placeholder="V" onChange={(e) => setVar(i, { symbol: e.target.value })} />
 						<input value={v.label} placeholder="Voltage" onChange={(e) => setVar(i, { label: e.target.value })} />
 						<input value={v.unit} placeholder="V" onChange={(e) => setVar(i, { unit: e.target.value })} />
-						<input value={v.defaultValue} placeholder="(optional)" onChange={(e) => setVar(i, { defaultValue: e.target.value })} />
+						<div className="fd-default">
+							<select value={v.constantId} title="Take the default from a constant" onChange={(e) => setVar(i, { constantId: e.target.value })}>
+								<option value="">typed</option>
+								{allConstants().map((c) => (
+									<option key={c.id} value={c.id}>
+										{c.symbol} · {c.name}
+									</option>
+								))}
+							</select>
+							<input
+								value={v.defaultValue}
+								disabled={v.constantId !== ''}
+								placeholder="(optional)"
+								onChange={(e) => setVar(i, { defaultValue: e.target.value })}
+							/>
+						</div>
 						<div className="fd-solve">
 							<input value={v.solve} placeholder="I*R" onChange={(e) => setVar(i, { solve: e.target.value })} />
 							<button
@@ -66,7 +82,7 @@ export function FormulaDialog({
 						</div>
 					</div>
 				))}
-				<button type="button" className="fd-add" onClick={() => setD((x) => ({ ...x, vars: [...x.vars, emptyDraft().vars[0]] }))}>
+				<button type="button" className="fd-add" onClick={() => setD((x) => ({ ...x, vars: [...x.vars, emptyVar()] }))}>
 					+ variable
 				</button>
 

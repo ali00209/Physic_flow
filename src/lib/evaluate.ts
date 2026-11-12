@@ -1,6 +1,7 @@
 import { fmt, math } from './math'
 import { solveFormula, unitOf } from './formulas'
 import { findFormula } from './registry'
+import { findConstant } from './constants'
 import { asciiUnit, evaluateSheet, type SheetRow } from './sheet'
 
 /** Plain values keyed by name (a wire's value, or a sheet input name). */
@@ -41,7 +42,13 @@ export function solveFormulaNode(node: FormulaNodeData, inputs: RawInputs): Form
 	if (!f) return { wired: {}, result: { ok: false, error: 'Unknown formula' } }
 
 	const values: Record<string, string> = {}
-	for (const v of f.vars) if (v.defaultValue !== undefined) values[v.symbol] = v.defaultValue
+	for (const v of f.vars) {
+		if (v.defaultValue !== undefined) values[v.symbol] = v.defaultValue
+		else if (v.constantId) {
+			const c = findConstant(v.constantId)
+			if (c) values[v.symbol] = c.value
+		}
+	}
 	Object.assign(values, parseFormulaValues(node.values))
 
 	const wired: Record<string, string> = {}

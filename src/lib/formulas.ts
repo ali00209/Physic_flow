@@ -5,6 +5,8 @@ export type Variable = {
   label: string
   unit: string
   defaultValue?: string
+  /** A constant (by id) that supplies this variable's default. Used when nothing is wired in. */
+  constantId?: string
 }
 
 export type Formula = {
@@ -14,6 +16,8 @@ export type Formula = {
   vars: Variable[]
   /** For each variable: an expression that solves for it using the others. */
   solve: Record<string, string>
+  /** The group the formula is listed under in the sidebar. */
+  section?: string
 }
 
 /**
@@ -50,7 +54,7 @@ export const FORMULAS: Formula[] = [
     vars: [
       { symbol: 'PE', label: 'Potential energy', unit: 'J' },
       { symbol: 'm', label: 'Mass', unit: 'kg' },
-      { symbol: 'g', label: 'Gravity', unit: 'm/s²', defaultValue: '9.81 m/s^2' },
+      { symbol: 'g', label: 'Gravity', unit: 'm/s²', constantId: 'g' },
       { symbol: 'h', label: 'Height', unit: 'm' },
     ],
     solve: { PE: 'm*g*h', m: 'PE/(g*h)', g: 'PE/(m*h)', h: 'PE/(m*g)' },

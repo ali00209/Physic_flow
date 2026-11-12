@@ -5,9 +5,9 @@ const ohm: FormulaDraft = {
 	name: "Ohm's law",
 	equation: 'V = I R',
 	vars: [
-		{ symbol: 'V', label: 'Voltage', unit: 'V', defaultValue: '', solve: 'I*R' },
-		{ symbol: 'I', label: 'Current', unit: 'A', defaultValue: '', solve: 'V/R' },
-		{ symbol: 'R', label: 'Resistance', unit: 'ohm', defaultValue: '', solve: 'V/I' },
+		{ symbol: 'V', label: 'Voltage', unit: 'V', defaultValue: '', constantId: '', solve: 'I*R' },
+		{ symbol: 'I', label: 'Current', unit: 'A', defaultValue: '', constantId: '', solve: 'V/R' },
+		{ symbol: 'R', label: 'Resistance', unit: 'ohm', defaultValue: '', constantId: '', solve: 'V/I' },
 	],
 }
 

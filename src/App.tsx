@@ -16,6 +16,8 @@ import { CalcNode, newId, type CalcFlowNode } from './nodes/CalcNode'
 import { FormulaNode, type FormulaFlowNode } from './nodes/FormulaNode'
 import { ResultContext } from './ResultContext'
 import { Toolbar, defaults, type NewNode } from './Toolbar'
+import { DRAG_TYPE, Sidebar, type DragPayload } from './Sidebar'
+import './sidebar.css'
 import { NodePicker, type PickChoice, type PickerAt } from './NodePicker'
 import { ConstantNode, type ConstantFlowNode } from './nodes/ConstantNode'
 import { findFormula, useFormulas } from './lib/registry'
@@ -47,6 +49,32 @@ export default function App() {
 
 function withRow(d: CalcData, row: SheetRowDef): CalcData {
 	return { ...d, rows: [...d.rows, row] }
+}
+
+type Feeds = { nodes: FlowNode[]; edges: Edge[] }
+
+/**
+ * A formula whose variable takes its default from a constant gets a constant node for it, wired into
+ * that input. Inputs listed in `skip` (for example the one a dropped wire feeds) are left alone.
+ */
+function constantFeeds(formulaId: string, formulaNodeId: string, at: { x: number; y: number }, skip: string[] = []): Feeds {
+	const feeds: Feeds = { nodes: [], edges: [] }
+	const f = findFormula(formulaId)
+	if (!f) return feeds
+	let row = 0
+	for (const v of f.vars) {
+		if (!v.constantId || !findConstant(v.constantId) || skip.includes(`in:${v.symbol}`)) continue
+		const cid = newId()
+		feeds.nodes.push({
+			id: cid,
+			type: 'const',
+			position: { x: at.x - 360, y: at.y + row * 140 },
+			data: { constId: v.constantId },
+		} as FlowNode)
+		feeds.edges.push({ id: `wire-${cid}`, source: cid, sourceHandle: 'out', target: formulaNodeId, targetHandle: `in:${v.symbol}` })
+		row++
+	}
+	return feeds
 }
 
 function Canvas() {
@@ -102,7 +130,7 @@ function Canvas() {
 	)
 
 	/** Adds one or more nodes and a wire together, but only if the wire is allowed on the graph after the change. */
-	const addWire = (conn: Connection, nextGraph: GraphNode[], patch: (ns: FlowNode[]) => FlowNode[]) => {
+	const addWire = (conn: Connection, nextGraph: GraphNode[], patch: (ns: FlowNode[]) => FlowNode[], extraEdges: Edge[] = []) => {
 		const why = checkConnection(nextGraph, graphEdges, conn)
 		if (why) {
 			setNotice(why)
@@ -110,9 +138,10 @@ function Canvas() {
 		}
 		setNotice('')
 		setNodes(patch)
-		setEdges((eds) =>
-			addEdge(conn, eds.filter((e) => !(e.target === conn.target && e.targetHandle === conn.targetHandle)))
-		)
+		setEdges((eds) => [
+			...addEdge(conn, eds.filter((e) => !(e.target === conn.target && e.targetHandle === conn.targetHandle))),
+			...extraEdges,
+		])
 		return true
 	}
 
@@ -198,6 +227,7 @@ function Canvas() {
 		const fromIsSource = p.fromType === 'source'
 		let node: FlowNode
 		let conn: Connection
+		let feeds: Feeds = { nodes: [], edges: [] }
 
 		if (choice.kind === 'calc') {
 			const row: SheetRowDef = { id: newId(), dir: fromIsSource ? 'in' : 'out', name: p.sourceName }
@@ -217,41 +247,78 @@ function Canvas() {
 			} else {
 				conn = { source: id, sourceHandle: 'out', target: p.fromNodeId, targetHandle: p.fromHandleId }
 			}
+			// The input the dropped wire feeds keeps that wire; the other constant defaults still apply.
+			feeds = constantFeeds(f.id, id, p.flow, fromIsSource && conn.targetHandle ? [conn.targetHandle] : [])
 		}
 
 		const nextGraph: GraphNode[] = [
 			...graphNodes,
 			{ id, kind: node.type as 'calc' | 'formula', data: node.data as CalcData | FormulaData },
+			...feeds.nodes.map((n) => ({ id: n.id, kind: 'const' as const, data: n.data as ConstantData })),
 		]
-		addWire(conn, nextGraph, (ns) => [...ns, node])
+		addWire(conn, nextGraph, (ns) => [...ns, node, ...feeds.nodes], feeds.edges)
 		setPicker(null)
 	}
 
-	// New nodes take the next free slot in a grid, so they never sit on top of each other.
+	/** Puts a new node at a position; a formula also gets its constant defaults wired in. */
+	const placeNode = (n: NewNode, position: { x: number; y: number }) => {
+		const id = newId()
+		const node = { id, type: n.kind, position, data: n.data } as FlowNode
+		const feeds: Feeds = n.kind === 'formula' ? constantFeeds(n.data.formulaId, id, position) : { nodes: [], edges: [] }
+		setNodes((ns) => [...ns, node, ...feeds.nodes])
+		if (feeds.edges.length) setEdges((eds) => [...eds, ...feeds.edges])
+	}
+
+	// New nodes from the toolbar take the next free slot in a grid, so they never sit on top of each other.
 	const addNode = (n: NewNode, base: { x: number; y: number }) => {
 		const slot = nodes.length
-		const position = { x: base.x + (slot % 3) * 340, y: base.y + Math.floor(slot / 3) * 460 }
-		const node = { id: newId(), type: n.kind, position, data: n.data } as FlowNode
-		setNodes((ns) => [...ns, node])
+		placeNode(n, { x: base.x + (slot % 3) * 340, y: base.y + Math.floor(slot / 3) * 460 })
+	}
+
+	// A sidebar item dropped on the canvas becomes a node where it was dropped.
+	const onDrop = (e: React.DragEvent) => {
+		const raw = e.dataTransfer.getData(DRAG_TYPE)
+		if (!raw) return
+		e.preventDefault()
+		const payload = JSON.parse(raw) as DragPayload
+		const at = rf.screenToFlowPosition({ x: e.clientX, y: e.clientY })
+		if (payload.kind === 'calc') placeNode({ kind: 'calc', data: { lines: '', rows: [] } }, at)
+		else if (payload.kind === 'const') placeNode({ kind: 'const', data: payload.data }, at)
+		else {
+			const f = findFormula(payload.formulaId)
+			if (f) placeNode({ kind: 'formula', data: { formulaId: f.id, values: JSON.stringify(defaults(f)), target: '' } }, at)
+		}
 	}
 
 	return (
 		<ResultContext.Provider value={result}>
-			<ReactFlow
-				nodes={nodes}
-				edges={edges}
-				onNodesChange={onNodesChange}
-				onEdgesChange={onEdgesChange}
-				onConnect={onConnect}
-				onConnectEnd={onConnectEnd}
-				nodeTypes={nodeTypes}
-				fitView={false}
-				defaultEdgeOptions={{ style: { strokeWidth: 2 } }}
-			>
-				<Background />
-				<Controls />
-				<Toolbar onAdd={addNode} notice={notice} />
-			</ReactFlow>
+			<div className="app-shell">
+				<Sidebar />
+				<div className="canvas-wrap">
+					<ReactFlow
+						nodes={nodes}
+						edges={edges}
+						onNodesChange={onNodesChange}
+						onEdgesChange={onEdgesChange}
+						onConnect={onConnect}
+						onConnectEnd={onConnectEnd}
+						onDragOver={(e) => {
+							if (e.dataTransfer.types.includes(DRAG_TYPE)) {
+								e.preventDefault()
+								e.dataTransfer.dropEffect = 'move'
+							}
+						}}
+						onDrop={onDrop}
+						nodeTypes={nodeTypes}
+						fitView={false}
+						defaultEdgeOptions={{ style: { strokeWidth: 2 } }}
+					>
+						<Background />
+						<Controls />
+						<Toolbar onAdd={addNode} notice={notice} />
+					</ReactFlow>
+				</div>
+			</div>
 			{picker && <NodePicker at={picker} onPick={spawn} onClose={() => setPicker(null)} />}
 		</ResultContext.Provider>
 	)

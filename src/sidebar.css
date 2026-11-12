@@ -1,0 +1,106 @@
+.sidebar {
+	width: 300px;
+	flex: 0 0 300px;
+	height: 100vh;
+	overflow-y: auto;
+	background: #fafafa;
+	border-right: 1px solid #e5e7eb;
+	display: flex;
+	flex-direction: column;
+	font-size: 13px;
+}
+
+.sb-head {
+	position: sticky;
+	top: 0;
+	background: #fafafa;
+	padding: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	border-bottom: 1px solid #e5e7eb;
+	z-index: 1;
+}
+
+.sb-head input {
+	padding: 6px 8px;
+	border: 1px solid #c7c9f5;
+	border-radius: 6px;
+	font: inherit;
+}
+
+.sb-count {
+	font-size: 12px;
+}
+
+.sb-section {
+	border-bottom: 1px solid #e5e7eb;
+}
+
+.sb-section > summary {
+	cursor: pointer;
+	font-weight: 700;
+	padding: 10px;
+	user-select: none;
+}
+
+.sb-sub > summary {
+	cursor: pointer;
+	font-weight: 600;
+	padding: 6px 10px 6px 18px;
+	color: #374151;
+	user-select: none;
+}
+
+.sb-body {
+	padding: 4px 8px 8px 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.sb-title {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #6b7280;
+	margin-top: 4px;
+}
+
+.sb-item {
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	padding: 6px 8px;
+	cursor: grab;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.sb-item:hover {
+	border-color: #6366f1;
+	background: #f5f5ff;
+}
+
+.sb-item:active {
+	cursor: grabbing;
+}
+
+.sb-empty {
+	padding: 6px 10px;
+}
+
+.app-shell {
+	display: flex;
+	height: 100vh;
+	width: 100vw;
+	overflow: hidden;
+}
+
+.canvas-wrap {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100vh;
+	position: relative;
+}

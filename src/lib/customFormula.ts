@@ -1,18 +1,26 @@
 import type { Formula } from './formulas'
+import { findConstant } from './constants'
 import { asciiUnit } from './sheet'
 import { math } from './math'
 
 /** What the user types in the "new formula" dialog. */
-export type VarDraft = { symbol: string; label: string; unit: string; defaultValue: string; solve: string }
+export type VarDraft = {
+	symbol: string
+	label: string
+	unit: string
+	defaultValue: string
+	/** A constant (by id) that supplies this variable's default. Takes the place of a typed default. */
+	constantId: string
+	solve: string
+}
 export type FormulaDraft = { name: string; equation: string; vars: VarDraft[] }
+
+export const emptyVar = (): VarDraft => ({ symbol: '', label: '', unit: '', defaultValue: '', constantId: '', solve: '' })
 
 export const emptyDraft = (): FormulaDraft => ({
 	name: '',
 	equation: '',
-	vars: [
-		{ symbol: '', label: '', unit: '', defaultValue: '', solve: '' },
-		{ symbol: '', label: '', unit: '', defaultValue: '', solve: '' },
-	],
+	vars: [emptyVar(), emptyVar()],
 })
 
 export function draftFrom(f: Formula): FormulaDraft {
@@ -24,6 +32,7 @@ export function draftFrom(f: Formula): FormulaDraft {
 			label: v.label,
 			unit: v.unit,
 			defaultValue: v.defaultValue ?? '',
+			constantId: v.constantId ?? '',
 			solve: f.solve[v.symbol] ?? '',
 		})),
 	}
@@ -78,7 +87,8 @@ export function validateDraft(
 				return { ok: false, error: `${sym}: the unit "${v.unit}" is not understood (try m/s^2, kg, N).` }
 			}
 		}
-		if (v.defaultValue.trim()) {
+		if (v.constantId && !findConstant(v.constantId)) return { ok: false, error: `${sym}: that constant no longer exists.` }
+		if (!v.constantId && v.defaultValue.trim()) {
 			try {
 				math.evaluate(v.defaultValue.trim())
 			} catch {
@@ -95,12 +105,16 @@ export function validateDraft(
 		id,
 		name: d.name.trim(),
 		equation: d.equation.trim(),
-		vars: d.vars.map((v) => ({
-			symbol: v.symbol.trim(),
-			label: v.label.trim() || v.symbol.trim(),
-			unit: v.unit.trim(),
-			...(v.defaultValue.trim() ? { defaultValue: v.defaultValue.trim() } : {}),
-		})),
+		vars: d.vars.map((v) => {
+			const out: Formula['vars'][number] = {
+				symbol: v.symbol.trim(),
+				label: v.label.trim() || v.symbol.trim(),
+				unit: v.unit.trim(),
+			}
+			if (v.constantId) out.constantId = v.constantId
+			else if (v.defaultValue.trim()) out.defaultValue = v.defaultValue.trim()
+			return out
+		}),
 		solve: Object.fromEntries(d.vars.map((v) => [v.symbol.trim(), v.solve.trim()])),
 	}
 	return { ok: true, formula }

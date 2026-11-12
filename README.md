@@ -27,14 +27,6 @@ npm run test:e2e                  # browser tests: loading, adding nodes, wires,
 ```
 If Playwright's browser can't be installed, set `CHROMIUM_PATH` to a Chromium or Chrome you already have.
 
-## Deploy
-
-Pushes to `main` run the tests, build the site, and deploy it to GitHub Pages with
-`.github/workflows/deploy.yml`. Pull requests run the same tests and build without deploying.
-
-Enable Pages once under **Settings → Pages → Source: GitHub Actions**. The site is then served at
-`https://<user>.github.io/<repo>/`.
-
 ## Layout
 - `src/lib/`: the maths and the graph. Pure TypeScript, no React.
   - `graph.ts`: runs the graph in order and checks wires.

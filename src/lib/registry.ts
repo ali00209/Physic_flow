@@ -1,5 +1,19 @@
 import { useSyncExternalStore } from 'react'
-import { FORMULAS as BUILTIN, type Formula } from './formulas'
+import { FORMULAS, type Formula } from './formulas'
+import { AP_FORMULAS } from './apFormulas'
+
+const BUILTIN_SECTION: Record<string, string> = {
+	newton2: 'Mechanics',
+	kinetic: 'Mechanics',
+	potential: 'Mechanics',
+	momentum: 'Mechanics',
+	kinematics: 'Mechanics',
+	ohm: 'Electricity & magnetism',
+	'ideal-gas': 'Fluids & thermal',
+	'circle-area': 'Geometry',
+	pythagoras: 'Geometry',
+}
+const BUILTIN: Formula[] = FORMULAS.map((f) => ({ ...f, section: BUILTIN_SECTION[f.id] ?? 'Other' }))
 
 /**
  * The formula list the app uses: the built-in formulas plus the ones the user made.
@@ -19,11 +33,11 @@ function readCustom(): Formula[] {
 }
 
 let custom: Formula[] = readCustom()
-let all: Formula[] = [...BUILTIN, ...custom]
+let all: Formula[] = [...BUILTIN, ...AP_FORMULAS, ...custom]
 
 function commit(next: Formula[]) {
 	custom = next
-	all = [...BUILTIN, ...custom]
+	all = [...BUILTIN, ...AP_FORMULAS, ...custom]
 	try {
 		localStorage.setItem(KEY, JSON.stringify(custom))
 	} catch {

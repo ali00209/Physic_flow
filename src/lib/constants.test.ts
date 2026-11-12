@@ -32,3 +32,30 @@ describe('constants', () => {
 		expect(r.views.x.error).toBe('Unknown constant')
 	})
 })
+
+describe('a formula default taken from a constant', () => {
+	it('solves with the constant when nothing is wired into that input', async () => {
+		const { solveFormulaNode } = await import('./evaluate')
+		const r = solveFormulaNode(
+			{ formulaId: 'potential', values: '{}', target: '' },
+			{ m: math.unit('2 kg'), h: math.unit('10 m') }
+		)
+		expect(r.result.ok).toBe(true)
+		if (r.result.ok) expect(String(r.result.value)).toMatch(/196\.1/)
+	})
+
+	it('a typed default is not allowed alongside a constant', async () => {
+		const { validateDraft } = await import('./customFormula')
+		const r = validateDraft({
+			name: 'Test',
+			equation: 'a = b',
+			vars: [
+				{ symbol: 'a', label: 'A', unit: 'm', defaultValue: 'nonsense (((', constantId: 'g', solve: 'b*2' },
+				{ symbol: 'b', label: 'B', unit: '', defaultValue: '', constantId: '', solve: 'a/2' },
+			],
+		})
+		// The typed default is ignored, so the bad text does not block saving.
+		expect(r.ok).toBe(true)
+		if (r.ok) expect(r.formula.vars[0].defaultValue).toBeUndefined()
+	})
+})

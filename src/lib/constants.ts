@@ -21,6 +21,12 @@ export const BUILTIN_CONSTANTS: Constant[] = [
 	{ id: 'eps0', name: 'Vacuum permittivity', symbol: 'eps0', value: '8.8541878128e-12 F/m' },
 	{ id: 'mu0', name: 'Vacuum permeability', symbol: 'mu0', value: '1.25663706212e-6 N/A^2' },
 	{ id: 'sigma', name: 'Stefan–Boltzmann constant', symbol: 'sigma', value: '5.670374419e-8 W/(m^2 K^4)' },
+	{ id: 'u', name: 'Unified atomic mass unit', symbol: 'u', value: '1.66e-27 kg' },
+	{ id: 'mn', name: 'Neutron mass', symbol: 'm_n', value: '1.67e-27 kg' },
+	{ id: 'hc', name: 'Planck constant times speed of light', symbol: 'hc', value: '1.99e-25 J m' },
+	{ id: 'ke', name: 'Coulomb constant', symbol: 'k', value: '9.0e9 N m^2/C^2' },
+	{ id: 'atm', name: 'One atmosphere', symbol: 'atm', value: '1.0e5 Pa' },
+	{ id: 'eV', name: 'Electron volt', symbol: 'eV', value: '1.60e-19 J' },
 ]
 
 const KEY = 'math-physics-custom-constants-v1'

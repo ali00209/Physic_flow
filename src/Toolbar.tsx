@@ -5,6 +5,7 @@ import { deleteFormula, isCustom, saveFormula, useFormulas } from './lib/registr
 import type { CalcData, ConstantData, FormulaData } from './lib/graph'
 import { FormulaDialog } from './FormulaDialog'
 import { ConstantsDialog } from './ConstantsDialog'
+import { ReferenceDialog } from './ReferenceDialog'
 
 export type NewNode =
 	| { kind: 'calc'; data: CalcData }
@@ -17,6 +18,7 @@ export function Toolbar({ onAdd, notice }: { onAdd: (n: NewNode, pos: { x: numbe
 	const formulas = useFormulas()
 	const [open, setOpen] = useState(false)
 	const [constOpen, setConstOpen] = useState(false)
+	const [refOpen, setRefOpen] = useState(false)
 	// null: dialog closed. { formula: null }: creating. { formula: f }: editing f.
 	const [editing, setEditing] = useState<{ formula: Formula | null } | null>(null)
 
@@ -63,6 +65,7 @@ export function Toolbar({ onAdd, notice }: { onAdd: (n: NewNode, pos: { x: numbe
 					)}
 				</div>
 				<button onClick={() => setConstOpen(true)}>Constants</button>
+				<button onClick={() => setRefOpen(true)}>Units &amp; functions</button>
 				{notice && <span className="notice">{notice}</span>}
 			</div>
 			{editing && (
@@ -76,6 +79,7 @@ export function Toolbar({ onAdd, notice }: { onAdd: (n: NewNode, pos: { x: numbe
 					}}
 				/>
 			)}
+			{refOpen && <ReferenceDialog onClose={() => setRefOpen(false)} />}
 			{constOpen && (
 				<ConstantsDialog
 					onAdd={(id) => {
