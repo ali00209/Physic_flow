@@ -12,6 +12,19 @@ export type Statement = { body: string; comment: string; start: number; end: num
 
 export type SheetRow = { source: string; start: number; end: number; result: LineResult }
 
+/** A statement starting with "@export" is evaluated like any other, and its name becomes an output. */
+const EXPORT_PREFIX = /^@export\s+/
+
+/** The names marked with @export, in order: "@export speed = d / t" exports "speed". */
+export function exportNames(text: string): string[] {
+  const names: string[] = []
+  for (const { body } of splitStatements(text)) {
+    const m = body.match(/^@export\s+([A-Za-z_]\w*)\s*=/)
+    if (m && !names.includes(m[1])) names.push(m[1])
+  }
+  return names
+}
+
 // Formula units use symbols like ² and Ω; mathjs needs ASCII.
 export const asciiUnit = (u: string) =>
   u.replace(/²/g, '^2').replace(/³/g, '^3').replace(/Ω/g, 'ohm').replace(/·/g, ' * ')
@@ -153,7 +166,7 @@ export function evaluateSheet(
     source: body,
     start,
     end,
-    result: evaluateOne(body, comment, scope),
+    result: evaluateOne(body.replace(EXPORT_PREFIX, ''), comment, scope),
   }))
   return { rows, scope }
 }

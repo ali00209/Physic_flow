@@ -1,0 +1,125 @@
+/* Graph node: settings on top, chart underneath. The card fills the size the user drags to. */
+.gn {
+	display: flex;
+	flex-direction: column;
+	min-width: 300px;
+	min-height: 320px;
+}
+.gn-head {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+.gn-title {
+	flex: 1;
+	min-width: 0;
+	font-weight: 600;
+}
+.gn-body {
+	flex: 0 0 auto;
+	padding: 4px 0;
+}
+.gn-inline {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.gn-row {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	margin: 3px 0;
+	min-width: 0;
+}
+.gn-row input[type='text'],
+.gn-row input:not([type]),
+.gn-row select {
+	min-width: 0;
+	flex: 1;
+}
+.gn-sym {
+	width: 22px;
+	flex: 0 0 auto;
+	font-family: ui-monospace, monospace;
+}
+.gn-state {
+	font-size: 11px;
+	white-space: nowrap;
+}
+.gn-series {
+	border-left: 3px solid;
+	padding-left: 6px;
+	margin: 6px 0;
+}
+.gn-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.gn-color {
+	width: 26px;
+	height: 22px;
+	padding: 0;
+	border: none;
+	background: none;
+}
+.gn-vis {
+	font-size: 12px;
+	display: flex;
+	gap: 3px;
+	align-items: center;
+}
+.gn-steps {
+	width: 64px;
+	flex: 0 0 auto;
+}
+.gn-points {
+	width: 100%;
+	min-height: 64px;
+	font-family: ui-monospace, monospace;
+	font-size: 12px;
+	box-sizing: border-box;
+}
+.gn-error {
+	color: #b42318;
+	font-size: 12px;
+	margin: 2px 0;
+}
+.gn-note {
+	font-size: 12px;
+}
+.gn-axes {
+	margin-top: 6px;
+	font-size: 13px;
+}
+.gn-axes summary {
+	cursor: pointer;
+}
+.gn-chart {
+	flex: 1 1 210px;
+	min-height: 210px;
+	position: relative;
+	width: 100%;
+}
+.gn-empty {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	font-size: 13px;
+	text-align: center;
+	padding: 12px;
+}
+.gn-foot {
+	padding: 4px 8px;
+}
+.gn-settings {
+	border-top: 1px solid #e4e4e7;
+	margin-top: 4px;
+	padding-top: 4px;
+}
+.gn-axes-title {
+	font-size: 12px;
+	margin-top: 6px;
+}

@@ -70,6 +70,6 @@ test('a wire that would make a loop is refused with a message', async ({ page })
 	const formula = page.locator('.react-flow__node-formula')
 
 	await dragWire(page, sheet.locator('.react-flow__handle.source'), formula.locator('[data-handleid="in:m"]'))
-	await dragWire(page, formula.locator('.react-flow__handle.source'), sheet.locator('.react-flow__handle.target'))
+	await dragWire(page, formula.locator('[data-handleid="out"]'), sheet.locator('.react-flow__handle.target'))
 	await expect(page.locator('.notice')).toContainText('loop')
 })

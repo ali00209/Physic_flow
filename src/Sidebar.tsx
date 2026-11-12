@@ -3,11 +3,16 @@ import { isCustomConstant, useConstants } from './lib/constants'
 import { useFormulas, isCustom } from './lib/registry'
 import type { Formula } from './lib/formulas'
 import type { ConstantData } from './lib/graph'
+import type { GraphKind } from './lib/graphNode'
 import './sidebar.css'
 
 /** What a dragged sidebar item carries. The canvas reads it on drop. */
 export const DRAG_TYPE = 'application/x-math-node'
-export type DragPayload = { kind: 'calc' } | { kind: 'const'; data: ConstantData } | { kind: 'formula'; formulaId: string }
+export type DragPayload =
+	| { kind: 'calc' }
+	| { kind: 'const'; data: ConstantData }
+	| { kind: 'formula'; formulaId: string }
+	| { kind: 'graph'; mode: GraphKind }
 
 const FORMULA_SECTIONS = [
 	'Mechanics',
@@ -61,7 +66,14 @@ export function Sidebar() {
 	})).filter((g) => g.items.length > 0)
 
 	const showCalc = matches('calculation sheet', 'calc')
-	const total = (showCalc ? 1 : 0) + builtinConstants.length + customConstants.length + formulaGroups.reduce((n, g) => n + g.items.length, 0)
+	const graphItems: { mode: GraphKind; title: string; sub: string }[] = [
+		{ mode: 'line', title: 'Line graph', sub: 'Formulas swept over a range' },
+		{ mode: 'scatter', title: 'Scatter graph', sub: 'Formulas as points over a range' },
+		{ mode: 'motion', title: 'Motion graph', sub: 'Position, velocity or acceleration against time' },
+	]
+	const shownGraphs = graphItems.filter((g) => matches(g.title, g.sub, 'graph', 'chart', 'plot'))
+	const showGraph = shownGraphs.length > 0
+	const total = (showCalc ? 1 : 0) + shownGraphs.length + builtinConstants.length + customConstants.length + formulaGroups.reduce((n, g) => n + g.items.length, 0)
 
 	return (
 		<aside className="sidebar">
@@ -83,6 +95,18 @@ export function Sidebar() {
 					</div>
 				)}
 				{!showCalc && <div className="muted sb-empty">No match</div>}
+			</details>
+
+			<details open={searching || undefined} className="sb-section">
+				<summary>Graphs</summary>
+				{showGraph && (
+					<div className="sb-body">
+						{shownGraphs.map((g) => (
+							<Item key={g.mode} payload={{ kind: 'graph', mode: g.mode }} title={g.title} sub={g.sub} />
+						))}
+					</div>
+				)}
+				{!showGraph && <div className="muted sb-empty">No match</div>}
 			</details>
 
 			<details open={searching || undefined} className="sb-section">

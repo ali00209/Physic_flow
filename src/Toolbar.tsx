@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { Formula } from './lib/formulas'
 import { deleteFormula, isCustom, saveFormula, useFormulas } from './lib/registry'
 import type { CalcData, ConstantData, FormulaData } from './lib/graph'
+import { defaultGraph, type GraphData, type GraphKind } from './lib/graphNode'
 import { FormulaDialog } from './FormulaDialog'
 import { ConstantsDialog } from './ConstantsDialog'
 import { ReferenceDialog } from './ReferenceDialog'
@@ -11,6 +12,7 @@ export type NewNode =
 	| { kind: 'calc'; data: CalcData }
 	| { kind: 'formula'; data: FormulaData }
 	| { kind: 'const'; data: ConstantData }
+	| { kind: GraphKind; data: GraphData }
 
 /** Adds a sheet or a formula card in the middle of the view, and lists the physics formulas. */
 export function Toolbar({ onAdd, notice }: { onAdd: (n: NewNode, pos: { x: number; y: number }) => void; notice: string }) {
@@ -32,6 +34,9 @@ export function Toolbar({ onAdd, notice }: { onAdd: (n: NewNode, pos: { x: numbe
 		<Panel position="top-left">
 			<div className="toolbar">
 				<button onClick={() => add({ kind: 'calc', data: { lines: '', rows: [] } })}>+ Calculation sheet</button>
+				<button onClick={() => add({ kind: 'line', data: defaultGraph('line') })}>+ Line graph</button>
+				<button onClick={() => add({ kind: 'scatter', data: defaultGraph('scatter') })}>+ Scatter graph</button>
+				<button onClick={() => add({ kind: 'motion', data: defaultGraph('motion') })}>+ Motion graph</button>
 				<div style={{ position: 'relative' }}>
 					<button onClick={() => setOpen((o) => !o)}>+ Physics formula ▾</button>
 					{open && (

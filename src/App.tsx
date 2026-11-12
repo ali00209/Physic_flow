@@ -14,6 +14,7 @@ import {
 import { useCallback, useMemo, useState } from 'react'
 import { CalcNode, newId, type CalcFlowNode } from './nodes/CalcNode'
 import { FormulaNode, type FormulaFlowNode } from './nodes/FormulaNode'
+import { GraphCard, type GraphFlowNode } from './nodes/GraphNode'
 import { ResultContext } from './ResultContext'
 import { Toolbar, defaults, type NewNode } from './Toolbar'
 import { DRAG_TYPE, Sidebar, type DragPayload } from './Sidebar'
@@ -22,6 +23,7 @@ import { NodePicker, type PickChoice, type PickerAt } from './NodePicker'
 import { ConstantNode, type ConstantFlowNode } from './nodes/ConstantNode'
 import { findFormula, useFormulas } from './lib/registry'
 import { findConstant, useConstants } from './lib/constants'
+import { defaultGraph, isGraphKind, type GraphData } from './lib/graphNode'
 import {
 	checkConnection,
 	computeGraph,
@@ -30,13 +32,14 @@ import {
 	type FormulaData,
 	type GraphEdge,
 	type GraphNode,
+	type NodeKind,
 	type SheetRowDef,
 } from './lib/graph'
 
-type FlowNode = CalcFlowNode | FormulaFlowNode | ConstantFlowNode
+type FlowNode = CalcFlowNode | FormulaFlowNode | ConstantFlowNode | GraphFlowNode
 
 // Defined outside the component so the object identity is stable.
-const nodeTypes = { calc: CalcNode, formula: FormulaNode, const: ConstantNode }
+const nodeTypes = { calc: CalcNode, formula: FormulaNode, const: ConstantNode, line: GraphCard, scatter: GraphCard, motion: GraphCard }
 
 export default function App() {
 	// React Flow hooks such as useReactFlow need the provider above them.
@@ -84,14 +87,30 @@ function Canvas() {
 	const [notice, setNotice] = useState('')
 	const [picker, setPicker] = useState<PickerAt | null>(null)
 
+	// Only what changes a result counts here. Moving a node, selecting it or resizing a graph does not,
+	// so dragging stays smooth while the graph is recalculated only when a value or a wire changes.
+	const graphSig = useMemo(
+		() =>
+			JSON.stringify([
+				nodes.map((n) => {
+					if (!isGraphKind(n.type ?? '')) return [n.id, n.type, n.data]
+					const { width: _width, height: _height, ...rest } = n.data as Record<string, unknown>
+					return [n.id, n.type, rest]
+				}),
+				edges.map((e) => [e.id, e.source, e.sourceHandle, e.target, e.targetHandle]),
+			]),
+		[nodes, edges]
+		)
+
 	const graphNodes: GraphNode[] = useMemo(
 		() =>
-				nodes.map((n) => ({
-					id: n.id,
-					kind: n.type as 'calc' | 'formula' | 'const',
-					data: n.data as CalcData | FormulaData | ConstantData,
-				})),
-		[nodes]
+			nodes.map((n) => ({
+				id: n.id,
+				kind: n.type as NodeKind,
+				data: n.data as CalcData | FormulaData | ConstantData | GraphData,
+			})),
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[graphSig]
 	)
 	const graphEdges: GraphEdge[] = useMemo(
 		() =>
@@ -102,7 +121,8 @@ function Canvas() {
 				target: e.target,
 				targetHandle: e.targetHandle ?? null,
 			})),
-		[edges]
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[graphSig]
 	)
 
 	// Every change to a node or a wire recomputes the whole graph, so results are always live.
@@ -284,6 +304,7 @@ function Canvas() {
 		const at = rf.screenToFlowPosition({ x: e.clientX, y: e.clientY })
 		if (payload.kind === 'calc') placeNode({ kind: 'calc', data: { lines: '', rows: [] } }, at)
 		else if (payload.kind === 'const') placeNode({ kind: 'const', data: payload.data }, at)
+		else if (payload.kind === 'graph') placeNode({ kind: payload.mode, data: defaultGraph(payload.mode) }, at)
 		else {
 			const f = findFormula(payload.formulaId)
 			if (f) placeNode({ kind: 'formula', data: { formulaId: f.id, values: JSON.stringify(defaults(f)), target: '' } }, at)

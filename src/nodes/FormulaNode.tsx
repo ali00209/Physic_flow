@@ -25,7 +25,7 @@ export function FormulaNode({ id, data }: NodeProps<FormulaFlowNode>) {
 		set({ values: JSON.stringify({ ...parseFormulaValues(data.values), [symbol]: value }) })
 
 	const solved = view?.formula
-	const height = HEADER_H + (f.vars.length + 2) * ROW_H
+	const height = HEADER_H + (f.vars.length + 3) * ROW_H
 
 	return (
 		<div className="card" style={{ width: NODE_WIDTH, height }}>
@@ -67,6 +67,11 @@ export function FormulaNode({ id, data }: NodeProps<FormulaFlowNode>) {
 						</option>
 					))}
 				</select>
+			</div>
+
+			<div className="row" style={{ height: ROW_H }}>
+				<span className="muted">formula → graph</span>
+				<Handle type="source" position={Position.Right} id="def" />
 			</div>
 
 			<div className="row" style={{ height: ROW_H, fontWeight: 600 }}>

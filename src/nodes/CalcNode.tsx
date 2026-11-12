@@ -3,6 +3,7 @@ import { useContext } from 'react'
 import { ResultContext } from '../ResultContext'
 import { DraftInput, DraftTextArea } from '../Draft'
 import type { CalcData, SheetRowDef } from '../lib/graph'
+import { exportNames } from '../lib/sheet'
 import { NODE_WIDTH, ROW_H, HEADER_H } from './layout'
 
 export type CalcFlowNode = Node<CalcData, 'calc'>
@@ -24,10 +25,12 @@ export function CalcNode({ id, data }: NodeProps<CalcFlowNode>) {
 	const addRow = (dir: 'in' | 'out') => set({ rows: [...data.rows, { id: newId(), dir, name: '' }] })
 	const removeRow = (rowId: string) => set({ rows: data.rows.filter((r) => r.id !== rowId) })
 
+	// Every @export name is an output on its own row, wired by its name.
+	const exported = exportNames(data.lines)
 	const taH = textHeight(data.lines)
 	const results = view?.sheetRows ?? []
 	const resultsH = results.length ? results.length * RESULT_H + 8 : 0
-	const height = HEADER_H + data.rows.length * ROW_H + (taH + 8) + ROW_H + resultsH
+	const height = HEADER_H + (data.rows.length + exported.length) * ROW_H + (taH + 8) + ROW_H + resultsH
 
 	return (
 		<div className="card" style={{ width: NODE_WIDTH, height }}>
@@ -56,6 +59,15 @@ export function CalcNode({ id, data }: NodeProps<CalcFlowNode>) {
 					</div>
 				)
 			})}
+
+			{exported.map((name) => (
+				<div key={`export:${name}`} className="row" style={{ height: ROW_H }}>
+					<span className="muted" style={{ flex: '0 0 auto' }}>@export</span>
+					<strong style={{ flex: '0 0 auto', marginLeft: 6 }}>{name}</strong>
+					<span className="muted" style={{ flex: '1 1 auto', textAlign: 'right' }}>{view?.handleText[`export:${name}`] ?? 'not computed'}</span>
+					<Handle type="source" position={Position.Right} id={`export:${name}`} />
+				</div>
+			))}
 
 			<div style={{ padding: '4px 16px', height: taH + 8, boxSizing: 'border-box' }}>
 				<DraftTextArea

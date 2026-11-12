@@ -36,10 +36,16 @@ export type FormulaSolve = {
 	result: { ok: true; symbol: string; value: unknown } | { ok: false; error: string }
 }
 
-/** Solves one formula card. Wired values win over typed ones; everything is worked in SI units. */
-export function solveFormulaNode(node: FormulaNodeData, inputs: RawInputs): FormulaSolve {
+/**
+ * Works out every value of a formula card in SI: typed values, then constant defaults, then wired
+ * values (which win). The card solver and the graph sampler both read the card through this.
+ */
+export function resolveFormulaValues(
+	node: FormulaNodeData,
+	inputs: RawInputs
+): { ok: true; values: Record<string, string>; wired: Record<string, string> } | { ok: false; wired: Record<string, string>; error: string } {
 	const f = findFormula(node.formulaId)
-	if (!f) return { wired: {}, result: { ok: false, error: 'Unknown formula' } }
+	if (!f) return { ok: false, wired: {}, error: 'Unknown formula' }
 
 	const values: Record<string, string> = {}
 	for (const v of f.vars) {
@@ -59,7 +65,7 @@ export function solveFormulaNode(node: FormulaNodeData, inputs: RawInputs): Form
 			values[v.symbol] = toSI(val, v.unit)
 			wired[v.symbol] = fmt(val)
 		} catch {
-			return { wired, result: { ok: false, error: `${v.symbol} arrives with incompatible units` } }
+			return { ok: false, wired, error: `${v.symbol} arrives with incompatible units` }
 		}
 	}
 
@@ -70,9 +76,19 @@ export function solveFormulaNode(node: FormulaNodeData, inputs: RawInputs): Form
 		try {
 			values[v.symbol] = toSI(math.evaluate(raw), v.unit)
 		} catch (err) {
-			return { wired, result: { ok: false, error: `Check ${v.symbol}: ${(err as Error).message}` } }
+			return { ok: false, wired, error: `Check ${v.symbol}: ${(err as Error).message}` }
 		}
 	}
+	return { ok: true, values, wired }
+}
+
+/** Solves one formula card. Wired values win over typed ones; everything is worked in SI units. */
+export function solveFormulaNode(node: FormulaNodeData, inputs: RawInputs): FormulaSolve {
+	const r = resolveFormulaValues(node, inputs)
+	if (!r.ok) return { wired: r.wired, result: { ok: false, error: r.error } }
+	const { values, wired } = r
+	const f = findFormula(node.formulaId)
+	if (!f) return { wired, result: { ok: false, error: 'Unknown formula' } }
 
 	const target = node.target || undefined
 	if (target && wired[target] !== undefined) {
