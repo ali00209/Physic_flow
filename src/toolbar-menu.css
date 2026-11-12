@@ -1,0 +1,21 @@
+/* Node menus on the toolbar: grouped by section, each item says what goes in and what comes out. */
+.menu-group {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #71717a;
+	padding: 8px 10px 2px;
+}
+.menu-io {
+	display: block;
+	font-size: 11px;
+	color: #71717a;
+	margin-top: 2px;
+	white-space: normal;
+}
+.menu-item {
+	display: block;
+	width: 100%;
+	text-align: left;
+}
